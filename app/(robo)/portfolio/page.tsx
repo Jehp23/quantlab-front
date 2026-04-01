@@ -15,7 +15,6 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
-import type { TooltipProps } from "recharts";
 import { usePortfolioStore } from "@/lib/store";
 import { portfolioApi } from "@/lib/api";
 import type { PortfolioAnalyzeResponse, EquityCurveResponse } from "@/lib/types";
@@ -222,7 +221,11 @@ function formatXTick(dateStr: string): string {
   return d.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
 }
 
-function EquityTooltip({ active, payload, label }: TooltipProps<number, string>) {
+function EquityTooltip({ active, payload, label }: {
+  active?: boolean;
+  payload?: Array<{ dataKey: string; value?: number }>;
+  label?: string;
+}) {
   if (!active || !payload?.length) return null;
   const port = (payload.find((p) => p.dataKey === "portfolio_value")?.value ?? 0) as number;
   const bench = (payload.find((p) => p.dataKey === "benchmark_value")?.value ?? 0) as number;
@@ -230,7 +233,7 @@ function EquityTooltip({ active, payload, label }: TooltipProps<number, string>)
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-xs min-w-[180px]">
-      <p className="font-semibold text-gray-700 mb-2">{formatXTick(label)}</p>
+      <p className="font-semibold text-gray-700 mb-2">{label ? formatXTick(label) : ""}</p>
       <p className="text-blue-600 mb-0.5">Portafolio: <span className="font-bold">${port.toFixed(2)}</span></p>
       <p className="text-gray-500 mb-1">SPY (benchmark): <span className="font-bold">${bench.toFixed(2)}</span></p>
       <p className={`font-semibold ${diff >= 0 ? "text-green-600" : "text-red-500"}`}>
