@@ -233,6 +233,7 @@ export interface MonteCarloRequest {
   horizon_days?: number;
   simulations?: number;
   initial_value?: number;
+  seed?: number; // undefined = aleatoriedad real; número = resultados reproducibles
 }
 
 export interface MonteCarloResponse {

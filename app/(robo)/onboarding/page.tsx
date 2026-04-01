@@ -229,21 +229,34 @@ export default function OnboardingPage() {
     setLoading(true);
     setError(null);
 
-    try {
-      const result = await portfolioApi.build({
-        risk_score: score,
-        investment_goal: String(nextAnswers.investmentGoal),
-        horizon_years: Number(nextAnswers.horizonYears),
-        liquidity_need: String(nextAnswers.liquidityNeed),
-        experience_level: String(nextAnswers.experienceLevel),
-        monthly_contribution: Number(nextAnswers.monthlyContribution) || 0,
-        emergency_buffer_months: Number(nextAnswers.emergencyBufferMonths),
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30_000);
+
+    const buildPromise = portfolioApi.build({
+      risk_score: score,
+      investment_goal: String(nextAnswers.investmentGoal),
+      horizon_years: Number(nextAnswers.horizonYears),
+      liquidity_need: String(nextAnswers.liquidityNeed),
+      experience_level: String(nextAnswers.experienceLevel),
+      monthly_contribution: Number(nextAnswers.monthlyContribution) || 0,
+      emergency_buffer_months: Number(nextAnswers.emergencyBufferMonths),
+    });
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      controller.signal.addEventListener("abort", () => {
+        reject(new Error("La solicitud tardó demasiado (30s). Intentá de nuevo más tarde."));
       });
+    });
+
+    try {
+      const result = await Promise.race([buildPromise, timeoutPromise]);
       setBuildResult(result);
       router.push("/portfolio");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al conectar con el servidor.");
       setLoading(false);
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 

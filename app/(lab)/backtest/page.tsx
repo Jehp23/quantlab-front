@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { backtestApi, montecarloApi } from "@/lib/api";
 import type { BacktestResponse, MonteCarloResponse } from "@/lib/types";
+import { getErrorMessage } from "@/lib/utils";
 
 // ── Constantes ───────────────────────────────────────────────────────────────
 
@@ -101,6 +102,7 @@ function BacktestContent() {
   }
 
   async function handleBacktest() {
+    if (weightSum === 0) return;
     const normalized = weights.map((w) => w / weightSum);
     setBtLoading(true);
     setBtError(null);
@@ -116,7 +118,7 @@ function BacktestContent() {
       });
       setBtResult(data);
     } catch (e: unknown) {
-      setBtError(e instanceof Error ? e.message : "Error desconocido");
+      setBtError(getErrorMessage(e));
     } finally {
       setBtLoading(false);
     }
@@ -138,7 +140,7 @@ function BacktestContent() {
       });
       setMcResult(data);
     } catch (e: unknown) {
-      setMcError(e instanceof Error ? e.message : "Error desconocido");
+      setMcError(getErrorMessage(e));
     } finally {
       setMcLoading(false);
     }

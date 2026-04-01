@@ -2,6 +2,9 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { PortfolioBuildResponse, PortfolioAnalyzeResponse, EquityCurveResponse, RecommendationLogEntry } from "./types";
 
+const MAX_VIEWED_ASSETS = 25;
+const CACHE_MAX_AGE_MS = 15 * 60 * 1000; // 15 minutos — tiempo de vida del caché de detalles de activos
+
 interface InvestorProfile {
   investmentGoal: string | null;
   horizonYears: number | null;
@@ -177,7 +180,7 @@ export const useAssetHistoryStore = create<AssetHistoryStore>()(
 
         const viewedAssets = Array.from(viewedMap.values())
           .sort((a, b) => b.lastViewedAt - a.lastViewedAt)
-          .slice(0, 25);
+          .slice(0, MAX_VIEWED_ASSETS);
 
         set({
           viewedAssets,
@@ -197,7 +200,7 @@ export const useAssetHistoryStore = create<AssetHistoryStore>()(
           lastViewedAt: now,
         };
 
-        const viewedAssets = [merged, ...(get().viewedAssets ?? []).filter((item) => item.ticker !== ticker)].slice(0, 25);
+        const viewedAssets = [merged, ...(get().viewedAssets ?? []).filter((item) => item.ticker !== ticker)].slice(0, MAX_VIEWED_ASSETS);
         set({
           viewedAssets,
           viewedTickers: viewedAssets.map((item) => item.ticker),
@@ -223,7 +226,7 @@ export const useAssetHistoryStore = create<AssetHistoryStore>()(
           },
         }));
       },
-      getCachedAssetDetail: (ticker, period, maxAgeMs = 15 * 60 * 1000) => {
+      getCachedAssetDetail: (ticker, period, maxAgeMs = CACHE_MAX_AGE_MS) => {
         const key = `${ticker.toUpperCase()}:${period}`;
         const entry = get().detailCache[key];
         if (!entry) return null;

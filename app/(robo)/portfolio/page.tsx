@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   PieChart,
@@ -15,6 +15,7 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
+import type { TooltipProps } from "recharts";
 import { usePortfolioStore } from "@/lib/store";
 import { portfolioApi } from "@/lib/api";
 import type { PortfolioAnalyzeResponse, EquityCurveResponse } from "@/lib/types";
@@ -178,7 +179,7 @@ function CorrelationHeatmap({
 
           {/* Filas — React.Fragment con key para evitar warning */}
           {tickers.map((row) => (
-            <React.Fragment key={row}>
+            <Fragment key={row}>
               <div className="h-12 flex items-center justify-end pr-2 text-xs font-semibold text-gray-600">
                 {row}
               </div>
@@ -203,7 +204,7 @@ function CorrelationHeatmap({
                   </div>
                 );
               })}
-            </React.Fragment>
+            </Fragment>
           ))}
         </div>
       </div>
@@ -214,16 +215,17 @@ function CorrelationHeatmap({
 // ── Equity Curve Chart ────────────────────────────────────────────────────────
 
 function formatXTick(dateStr: string): string {
-  const [year, month] = dateStr.split("-");
-  const d = new Date(parseInt(year), parseInt(month) - 1);
+  // Acepta "YYYY-MM" o "YYYY-MM-DD"
+  const parts = dateStr.split("-");
+  if (parts.length < 2) return dateStr;
+  const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1);
   return d.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function EquityTooltip({ active, payload, label }: any) {
+function EquityTooltip({ active, payload, label }: TooltipProps<number, string>) {
   if (!active || !payload?.length) return null;
-  const port = (payload.find((p: { dataKey: string; value: number }) => p.dataKey === "portfolio_value")?.value ?? 0) as number;
-  const bench = (payload.find((p: { dataKey: string; value: number }) => p.dataKey === "benchmark_value")?.value ?? 0) as number;
+  const port = (payload.find((p) => p.dataKey === "portfolio_value")?.value ?? 0) as number;
+  const bench = (payload.find((p) => p.dataKey === "benchmark_value")?.value ?? 0) as number;
   const diff = bench > 0 ? ((port / bench) - 1) * 100 : 0;
 
   return (
@@ -600,7 +602,9 @@ export default function PortfolioPage() {
               )}
             </button>
             {analyzeError && (
-              <p className="text-red-500 text-xs mt-2 text-center">{analyzeError}</p>
+              <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-red-700 text-sm font-medium">{analyzeError}</p>
+              </div>
             )}
           </div>
         </div>
