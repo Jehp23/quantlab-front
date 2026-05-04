@@ -112,8 +112,8 @@ export function calculatePerformance(returns) {
 
     // Retorno geométrico anualizado: (1 + R_total)^(252/n) - 1
     // Igual que quant_service.annualized_return() del backend
-    const totalReturn = Math.exp(returns.reduce((a, b) => a + b, 0)) - 1;
-    const annualReturn = Math.pow(1 + totalReturn, annualFactor / n) - 1;
+    const geoReturnDecimal = Math.exp(returns.reduce((a, b) => a + b, 0)) - 1;
+    const annualReturn = Math.pow(1 + geoReturnDecimal, annualFactor / n) - 1;
     const annualVol = std * Math.sqrt(annualFactor);
     const sharpe = (annualReturn - rfAnnual) / annualVol;
 
