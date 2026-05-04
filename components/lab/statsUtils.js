@@ -108,7 +108,7 @@ export function calculatePerformance(returns) {
     const annualFactor = 252;
     // Rf = 5% anual — coincide con constants/rates.py del backend (BIL ~5%, 2024)
     const rfAnnual = 0.05;
-    const { n, mean, std } = calculateBasicStats(returns);
+    const { n, std } = calculateBasicStats(returns);
 
     // Retorno geométrico anualizado: (1 + R_total)^(252/n) - 1
     // Igual que quant_service.annualized_return() del backend
